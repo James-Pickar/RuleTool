@@ -2,7 +2,8 @@ import argparse
 from pathlib import Path
 
 
-def extract_weight(prefix: str)-> float:
+# Modular Functions
+def extract_weight(prefix: str) -> float:
     if (prefix.find("<") > -1) and (prefix.find(">") > -1):
         weight_start = prefix.find("<") + 1
         weight_end = prefix.find(">")
@@ -16,6 +17,7 @@ def extract_weight(prefix: str)-> float:
     return weight
 
 
+# Procedural Functions
 def read_file(file: str) -> str:
     if not (file and Path(file).is_file()):
         print("Invalid Path")
