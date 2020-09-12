@@ -10,10 +10,10 @@ def extract_weight(prefix: str) -> float:
         weight = prefix[weight_start:weight_end]
     else:
         weight = 1.0
-    # try:
-    weight = float(weight)
-    # except ValueError:
-    # weight = 1.0
+    try:
+        weight = float(weight)
+    except ValueError:
+        weight = 1.0
     return weight
 
 
@@ -54,29 +54,44 @@ def enumerate_rules(file_text: str):
     return rules
 
 
-def separate_rule_components(original_ruleset: list) -> list:
-    new_ruleset = []
-    for original_rule in original_ruleset:
-        original_texts = original_rule["text"].split("=>")
-        original_rule["nodes"] = original_texts[0]
+def separate_rule_components(previous_ruleset: list) -> list:
+    updated_ruleset = []
+    for previous_rule in previous_ruleset:
+        original_texts = previous_rule["text"].split("=>")
+        previous_rule["nodes"] = original_texts[0]
         if len(original_texts) > 1:
-            original_rule["action"] = original_texts[1]
+            previous_rule["action"] = original_texts[1]
         else:
-            original_rule["action"] = None
-        new_ruleset.append(original_rule)
-    return new_ruleset
+            previous_rule["action"] = None
+        updated_ruleset.append(previous_rule)
+    return updated_ruleset
 
 
-def separate_action_components(original_ruleset: list) -> list:
-    new_ruleset = []
-    for original_rule in original_ruleset:
-        actions = original_rule["action"]
-        if actions:
-            actions = actions[2:-2]
-            actions = actions.split(";")
-            original_rule["actions_list"] = actions
-            new_ruleset.append(original_rule)
-    return new_ruleset
+def separate_action_components(previous_ruleset: list) -> list:
+    updated_ruleset = []
+    for previous_rule in previous_ruleset:
+        components = previous_rule["action"]
+        previous_rule["actions_list"] = []
+        if components:
+            components = components[2:-2]
+            components = components.split(";")
+            previous_rule["actions_list"] = components
+            updated_ruleset.append(previous_rule)
+    return updated_ruleset
+
+
+def separate_action_subcomponents(previous_ruleset: list) -> list:
+    updated_ruleset = []
+    for previous_rule in previous_ruleset:
+        subcomponents_list = []
+        for previous_action in previous_rule["actions_list"]:
+            previous_actions = previous_action.split(".")
+            if previous_actions[0].find("AddProp") > -1:
+                current_action = previous_actions[1][:-1].split("=")
+                subcomponents_list.append(current_action)
+        previous_rule["actions_dict"] = subcomponents_list
+        updated_ruleset.append(previous_rule)
+    return updated_ruleset
 
 
 if __name__ == "__main__":
@@ -85,6 +100,7 @@ if __name__ == "__main__":
                                                                            "examination.")
     args = parser.parse_args()
     txt = read_file(args.input)
-    all_rules = enumerate_rules(txt)
-    separated_rules = separate_rule_components(all_rules)
-    actionable_rules = separate_action_components(separated_rules)
+    input_ruleset = enumerate_rules(txt)
+    input_ruleset = separate_rule_components(input_ruleset)
+    input_ruleset = separate_action_components(input_ruleset)
+    input_ruleset = separate_action_subcomponents(input_ruleset)
