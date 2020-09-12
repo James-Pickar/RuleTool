@@ -86,11 +86,10 @@ def separate_action_subcomponents(previous_ruleset: list) -> list:
         subcomponents_list = []
         for previous_action in previous_rule["actions_list"]:
             previous_actions = previous_action.split(".")
-            if previous_actions[0].find("AddProp") > -1:
-                current_action = previous_actions[1]
-                current_action = current_action[:-1]
-                current_action = current_action.split("=")
-                subcomponents_list.append(current_action)
+            if previous_actions[0].find("AddProp") == -1:
+                continue
+            current_action = previous_actions[1][:-1].split("=")
+            subcomponents_list.append(current_action)
         previous_rule["actions_dict"] = subcomponents_list
         updated_ruleset.append(previous_rule)
     return updated_ruleset
