@@ -54,7 +54,7 @@ def enumerate_rules(file_text: str):
     return rules
 
 
-def select_requested_rules(original_ruleset: list) -> list:
+def separate_rule_components(original_ruleset: list) -> list:
     new_ruleset = []
     for original_rule in original_ruleset:
         original_texts = original_rule["text"].split("=>")
@@ -67,6 +67,18 @@ def select_requested_rules(original_ruleset: list) -> list:
     return new_ruleset
 
 
+def separate_action_components(original_ruleset: list) -> list:
+    new_ruleset = []
+    for original_rule in original_ruleset:
+        actions = original_rule["action"]
+        if actions:
+            actions = actions[2:-2]
+            actions = actions.split(";")
+            original_rule["actions_list"] = actions
+            new_ruleset.append(original_rule)
+    return new_ruleset
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("input", metavar="input_file_path", type=str, help="Path of input rule set file for "
@@ -74,5 +86,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     txt = read_file(args.input)
     all_rules = enumerate_rules(txt)
-    selected_rules = select_requested_rules(all_rules)
-    print(selected_rules)
+    separated_rules = separate_rule_components(all_rules)
+    actionable_rules = separate_action_components(separated_rules)
