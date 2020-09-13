@@ -34,17 +34,6 @@ def extract_sentence_cloud(prefix: str) -> str:
         return prefix[sentence_start:]
 
 
-def verify_selection(previous_actions: list, requested_actions: list) -> bool:
-    matches = 0
-    for previous_action in previous_actions:
-        for requested_action in requested_actions:
-            if previous_action[0] == requested_action[0] and previous_action[1] == requested_action[1]:
-                matches += 1
-    print(matches)
-    if matches >= len(requested_actions):
-        return True
-
-
 # Procedural Functions
 def read_file(file: str) -> str:
     if not (file and Path(file).is_file()):
@@ -159,10 +148,10 @@ def write_file(rules: list, name: str, input_file: str):
     file_path.write_text(text)
 
 
-def cleanup(rules: list, name: str, input_file: str, cc: bool, x: bool):
-    input_path = Path(input_file)
+def cleanup(rules: list, file_path: list, cc: bool, x: bool):
+    input_path = Path(file_path[0])
     if x:
-        input_path.write_text("#include " + name + "\n\n" + input_path.read_text())
+        input_path.write_text("#include " + file_path[1] + "\n\n" + input_path.read_text())
     if cc:
         file_text = input_path.read_text()
         for rule in rules:
@@ -188,4 +177,4 @@ if __name__ == "__main__":
     output_ruleset = select_requested_actions(input_ruleset, args.actions)
     file_name = generate_output_file_name(args.actions)
     write_file(output_ruleset, file_name, args.input)
-    cleanup(output_ruleset, file_name, args.input, args.cc, args.x)
+    cleanup(output_ruleset, [args.input, file_name], args.cc, args.x)
