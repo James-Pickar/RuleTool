@@ -1,4 +1,7 @@
+.gitignore
 .idea/
 test.py
+__pycache__
 Alternitive_SentimentLexiconRuleSet.txt
 Default_SentimentLexiconRuleSet.txt
+*.rls
