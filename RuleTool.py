@@ -89,13 +89,23 @@ def separate_action_subcomponents(rule: dict) -> dict:
 
 def determine_requested_actions(rule: dict, requested_actions: list) -> bool:
     matches = 0
-    for previous_action in rule["actions_dict"]:
+    for action in rule["actions_dict"]:
         for requested_action in requested_actions:
-            if previous_action[0] == requested_action[0] and previous_action[1] == requested_action[1]:
+            if action[0] == requested_action[0] and action[1] == requested_action[1]:
                 matches += 1
                 break
     if matches >= len(requested_actions):
         return True
+
+
+def reconstruct_rule(rule: dict) -> str:
+    rule_text = ""
+    if rule["sentence_cloud"]:
+        rule_text += "//" + rule["sentence_cloud"] + "\n"
+    if rule["weight"] != 0:
+        rule_text += "<" + str(rule["weight"]) + "> "
+    rule_text += rule["text"]
+    return rule_text
 
 
 # Procedural Functions
@@ -107,7 +117,8 @@ def read_file(file: str) -> str:
     return file_text
 
 
-def extract_rule_metadata(file_text: str, requested_actions: list) -> list:
+def extract_rule_metadata(file_text: str, requested_actions: list) -> dict:
+    text = ""
     rules = []
     while file_text.find("(0:") > -1:
         rule = enumerate_rules(file_text)
@@ -121,18 +132,15 @@ def extract_rule_metadata(file_text: str, requested_actions: list) -> list:
         rule = separate_action_subcomponents(rule)
         if not determine_requested_actions(rule, requested_actions):
             continue
+        rule_text = reconstruct_rule(rule)
+        rule["reconstruction"] = rule_text
         rules.append(rule)
-    return rules
-
-
-def reconstruct_rule(rule: dict) -> str:
-    rule_text = ""
-    if rule["sentence_cloud"]:
-        rule_text += "//" + rule["sentence_cloud"] + "\n"
-    if rule["weight"] != 0:
-        rule_text += "<" + str(rule["weight"]) + "> "
-    rule_text += rule["text"]
-    return rule_text
+        text += rule_text + "\n\n"
+    output = {
+        "text": text,
+        "rules": rules
+    }
+    return output
 
 
 def generate_output_file_name(requested_actions: list) -> str:
@@ -143,11 +151,7 @@ def generate_output_file_name(requested_actions: list) -> str:
     return name
 
 
-def write_file(rules: list, name: str, input_file: str):
-    text = ""
-    for rule in rules:
-        rule_text = reconstruct_rule(rule)
-        text += rule_text + "\n\n"
+def write_file(text: str, name: str, input_file: str):
     file_path = Path(input_file).parent / name
     file_path.write_text(text)
 
@@ -159,8 +163,7 @@ def cleanup(rules: list, file_path: list, cc: bool, x: bool):
     if cc:
         file_text = input_path.read_text()
         for rule in rules:
-            rule_text = reconstruct_rule(rule)
-            file_text = file_text.replace(rule_text, "")
+            file_text = file_text.replace(rule["reconstruction"], "")
             input_path.write_text(file_text)
 
 
@@ -174,7 +177,7 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
     txt = read_file(args.input)
-    output_ruleset = extract_rule_metadata(txt, args.actions)
+    ruleset = extract_rule_metadata(txt, args.actions)
     file_name = generate_output_file_name(args.actions)
-    write_file(output_ruleset, file_name, args.input)
-    cleanup(output_ruleset, [args.input, file_name], args.cc, args.x)
+    write_file(ruleset["text"], file_name, args.input)
+    cleanup(ruleset["rules"], [args.input, file_name], args.cc, args.x)
