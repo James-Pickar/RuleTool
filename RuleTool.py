@@ -1,5 +1,5 @@
 import argparse
-from pathlib import Path
+import pathlib
 
 
 class KeyValue(argparse.Action):
@@ -110,10 +110,10 @@ def reconstruct_rule(rule: dict) -> str:
 
 # Procedural Functions
 def read_file(file: str) -> str:
-    if not (file and Path(file).is_file()):
+    if not (file and pathlib.Path(file).is_file()):
         print("Invalid Path")
         exit(1)
-    file_text = Path(file).read_text()
+    file_text = pathlib.Path(file).read_text()
     return file_text
 
 
@@ -152,19 +152,23 @@ def generate_output_file_name(requested_actions: list) -> str:
 
 
 def write_file(text: str, name: str, input_file: str):
-    file_path = Path(input_file).parent / name
+    file_path = pathlib.Path(input_file).parent / name
     file_path.write_text(text)
 
 
-def cleanup(rules: list, file_path: list, cc: bool, x: bool):
-    input_path = Path(file_path[0])
-    if x:
-        input_path.write_text("#include " + file_path[1] + "\n\n" + input_path.read_text())
+def cleanup(rules: list, input_file: str, name: str, cc: bool, x: bool):
+    input_path = pathlib.Path(input_file)
+    confirmation = "Complete! " + str(len(rules)) + " rules added to " + str(input_path.parent / name)
     if cc:
         file_text = input_path.read_text()
         for rule in rules:
             file_text = file_text.replace(rule["reconstruction"], "")
             input_path.write_text(file_text)
+        confirmation += " and removed from " + input_file + "."
+    if x:
+        input_path.write_text("#include " + name + "\n\n" + input_path.read_text())
+        confirmation += "  " + name + " has been included in " + input_file + "."
+    print(confirmation)
 
 
 if __name__ == "__main__":
@@ -180,4 +184,4 @@ if __name__ == "__main__":
     ruleset = extract_rule_metadata(txt, args.actions)
     file_name = generate_output_file_name(args.actions)
     write_file(ruleset["text"], file_name, args.input)
-    cleanup(ruleset["rules"], [args.input, file_name], args.cc, args.x)
+    cleanup(ruleset["rules"], args.input, file_name, args.cc, args.x)
