@@ -175,9 +175,10 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("input", metavar="input_file_path", type=str, help="Path of input rule set file for "
                                                                                "examination.")
-    arg_parser.add_argument("--actions", required=True, nargs="*", action=KeyValue, help="hi")
-    arg_parser.add_argument("-cc", action="store_true", help="")
-    arg_parser.add_argument("-x", action="store_true", help="")
+    arg_parser.add_argument("--actions", required=True, nargs="*", action=KeyValue, help="The actions to filter by. "
+                                                                                         "ACTION_NAME=Value")
+    arg_parser.add_argument("-cc", action="store_true", help="Remove selected rules of input ruleset.")
+    arg_parser.add_argument("-x", action="store_true", help="Include new ruleset in inputted ruleset.")
 
     args = arg_parser.parse_args()
     txt = read_file(args.input)
